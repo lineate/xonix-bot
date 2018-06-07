@@ -1,8 +1,8 @@
-The example of Gameplay usage for testing of TestBot:
-The Gameplay reflects the logic of processing of bot step. The developer can debug bot logic locally without of using the server. 
-
+The example shows how to use Gameplay class to test your bot TestBot.
+The Gameplay class contains the game logic, in particular `parseString`, `createMatch`, `step`
+and other functions, so the developer can debug the bot logic locally without the server.
 ```
-class TestBot{
+class TestEnv{
     public static void main(String[] args) {
             Gameplay gameplay = new Gameplay();
             List<Bot> bots = Arrays.asList(new MyBot("1"), new MyBot("2"));

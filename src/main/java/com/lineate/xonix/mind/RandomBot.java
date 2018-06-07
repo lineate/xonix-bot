@@ -3,6 +3,7 @@ package com.lineate.xonix.mind;
 import com.lineate.xonix.mind.model.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
@@ -41,9 +42,9 @@ public class RandomBot implements Bot {
     public Move move(GameState gs) {
         int idx = gs.botId;
         Cell[][] field = gs.cells;
-        Point head = gs.me.get(gs.me.size() - 1);
-        List<List<Point>> bodies = gs.others;
-        List<Point> me = gs.me;
+        Point head = gs.me.head().get();
+        List<Tail> bodies = gs.others;
+        Player me = gs.me;
 
         if (lastMove != null) {
             Point newHead = calculateHead(field, head, lastMove);
@@ -81,19 +82,19 @@ public class RandomBot implements Bot {
                     }
                 }).get();
                 Point newHead = calculateHead(field, head, move);
-                if (!bodies.get(idx).contains(newHead))
+                if (!bodies.get(idx).getIt().contains(newHead))
                     break;
             } else if (lastMove == null) {
                 move = Move.values()[random.nextInt(4)];
                 Point newHead = calculateHead(field, head, move);
-                if (!bodies.get(idx).contains(newHead))
+                if (!bodies.get(idx).getIt().contains(newHead))
                     break;
             } else {
                 // higher probability to choose the last move
                 int r = random.nextInt(16);
                 move = (r < 4) ? Move.values()[r] : lastMove;
                 Point newHead = calculateHead(field, head, move);
-                if (!bodies.get(idx).contains(newHead))
+                if (!bodies.get(idx).getIt().contains(newHead))
                     break;
             }
         }
