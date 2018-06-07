@@ -1,16 +1,8 @@
 package com.lineate.xonix.mind;
 
-import com.lineate.xonix.mind.model.Bot;
-import com.lineate.xonix.mind.model.Cell;
-import com.lineate.xonix.mind.model.CellType;
-import com.lineate.xonix.mind.model.GameState;
-import com.lineate.xonix.mind.model.Move;
-import com.lineate.xonix.mind.model.Point;
+import com.lineate.xonix.mind.model.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.function.Supplier;
 
@@ -34,7 +26,7 @@ public class RandomBot implements Bot {
     }
 
     public RandomBot(String name) {
-        this(name, new Random(1000));
+        this(name, new Random());
     }
 
     public RandomBot(String name, Random random) {
@@ -47,15 +39,16 @@ public class RandomBot implements Bot {
     }
 
     public Move move(GameState gs) {
-        int id = gs.botId;
-        Cell[][] field = gs.field;
-        Point head = gs.head;
-        Map<Integer, List<Point>> bodies = getBodies(field);
+        int idx = gs.botId;
+        Cell[][] field = gs.cells;
+        Point head = gs.me.get(gs.me.size() - 1);
+        List<List<Point>> bodies = gs.others;
+        List<Point> me = gs.me;
 
         if (lastMove != null) {
             Point newHead = calculateHead(field, head, lastMove);
             // don't try to select the last move, if it is to bite itself
-            if (bodies.containsKey(id) && bodies.get(id).contains(newHead))
+            if (me.contains(newHead))
                 lastMove = null;
         }
 
@@ -88,60 +81,19 @@ public class RandomBot implements Bot {
                     }
                 }).get();
                 Point newHead = calculateHead(field, head, move);
-                if (bodies.containsKey(id) && !bodies.get(id).contains(newHead))
+                if (!bodies.get(idx).contains(newHead))
                     break;
             } else if (lastMove == null) {
                 move = Move.values()[random.nextInt(4)];
                 Point newHead = calculateHead(field, head, move);
-                if (bodies.containsKey(id) && !bodies.get(id).contains(newHead))
+                if (!bodies.get(idx).contains(newHead))
                     break;
             } else {
                 // higher probability to choose the last move
                 int r = random.nextInt(16);
                 move = (r < 4) ? Move.values()[r] : lastMove;
                 Point newHead = calculateHead(field, head, move);
-                if (bodies.containsKey(id) && !bodies.get(id).contains(newHead))
-                    break;
-            }
-        }
-
-        lastMove = (move == null) ? Move.STOP : move;
-        // if after all those attempts we don't found the move, just stay
-        return lastMove;
-    }
-
-    public Move move1(GameState gs) {
-        int id = gs.botId;
-        Cell[][] field = gs.field;
-        Point point = gs.head;
-        Map<Integer, List<Point>> bodies = getBodies(field);
-
-        // TODO this should be in the control loop
-        if (!bodies.containsKey(id))
-            return Move.STOP; // on the border or filled area
-
-        if (lastMove != null) {
-            Point newHead = calculateHead(field, point, lastMove);
-            // don't try to select the last move, if it is to bite itself
-            if (bodies.get(id).contains(newHead))
-                lastMove = null;
-        }
-
-        Move move = null;
-        // some attempts to move
-        for (int i = 0; i < attempts; i++) {
-            if (lastMove == null) {
-                move = Move.values()[random.nextInt(4)];
-                Point newHead = calculateHead(field, point, move);
-                if (!bodies.get(id).contains(newHead))
-                    break;
-            } else {
-                // higher probability to choose the last move
-                int r = random.nextInt(16);
-                move = (r < 4) ? Move.values()[r] : lastMove;
-
-                Point newHead = calculateHead(field, point, move);
-                if (!bodies.get(id).contains(newHead))
+                if (!bodies.get(idx).contains(newHead))
                     break;
             }
         }
@@ -175,32 +127,16 @@ public class RandomBot implements Bot {
         return Point.of(row, col);
     }
 
-    public Map<Integer, List<Point>> getBodies(Cell[][] field) {
-        int rows = field.length;
-        int cols = field[0].length;
-        Map<Integer, List<Point>> bodies = new HashMap<>();
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                Cell cell = field[i][j];
-                if (cell.getCellType() == CellType.TAIL) {
-                    bodies.computeIfAbsent(cell.getBotId(), id-> new ArrayList<Point>())
-                            .add(Point.of(i, j));
-                }
-            }
-        }
-        return bodies;
-    }
-
     private Point calculateDestination(Random random, GameState gs , Point head) {
-        int m = gs.field.length;
-        int n = gs.field[0].length;
+        int m = gs.cells.length;
+        int n = gs.cells[0].length;
         // put several random dots into the field, and the first empty point
         // is our destination
         for (int k = 1; k<= 16; k++) {
             int i = random.nextInt(m);
             int j = random.nextInt(n);
             Point p = Point.of(i, j);
-            if (gs.field[p.getRow()][p.getCol()].getCellType() == CellType.EMPTY) {
+            if (gs.cells[p.getRow()][p.getCol()].getCellType() == CellType.EMPTY) {
                 if (p != head) {
                     return p;
                 }
