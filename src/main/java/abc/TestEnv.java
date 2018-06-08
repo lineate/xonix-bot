@@ -1,4 +1,4 @@
-package com.lineate.xonix.mind;
+package abc;
 
 import com.lineate.xonix.mind.model.Bot;
 import com.lineate.xonix.mind.model.GameState;

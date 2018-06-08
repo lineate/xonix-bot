@@ -1,4 +1,4 @@
-package com.lineate.xonix.mind;
+package abc;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
