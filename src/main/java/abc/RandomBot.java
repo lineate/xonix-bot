@@ -4,7 +4,6 @@ import com.lineate.xonix.mind.model.*;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
@@ -15,16 +14,18 @@ import static java.util.stream.Collectors.toList;
  */
 public class RandomBot implements Bot {
 
-    String name;
+    private String name;
 
-    int attempts = 8;
+    private int attempts = 8;
 
-    Random random;
+    private Random random;
 
-    Move lastMove;
+    private Move lastMove;
 
-    Point destination;
+    private Point destination;
 
+    // Required by API
+    @SuppressWarnings("unused")
     public RandomBot() {
         this("RandomBot");
     }
@@ -46,7 +47,6 @@ public class RandomBot implements Bot {
         int idx = gs.botId;
         Cell[][] field = gs.cells;
         Point head = gs.me.head().get();
-        List<Tail> bodies = gs.others;
         Player me = gs.me;
 
         if (lastMove != null) {
@@ -85,19 +85,19 @@ public class RandomBot implements Bot {
                     }
                 }).get();
                 Point newHead = calculateHead(field, head, move);
-                if (!bodies.get(idx).getIt().contains(newHead))
+                if (!me.contains(newHead))
                     break;
             } else if (lastMove == null) {
                 move = Move.values()[random.nextInt(4)];
                 Point newHead = calculateHead(field, head, move);
-                if (!bodies.get(idx).getIt().contains(newHead))
+                if (!me.contains(newHead))
                     break;
             } else {
                 // higher probability to choose the last move
                 int r = random.nextInt(16);
                 move = (r < 4) ? Move.values()[r] : lastMove;
                 Point newHead = calculateHead(field, head, move);
-                if (!bodies.get(idx).getIt().contains(newHead))
+                if (!me.contains(newHead))
                     break;
             }
         }
@@ -152,6 +152,8 @@ public class RandomBot implements Bot {
 
     public static void main(String[] args) {
         Gameplay gameplay = new Gameplay();
+        // Random random = new Random(123);
+        // List<Bot> bots = Arrays.asList(new RandomBot("1", random));
         List<Bot> bots = Arrays.asList(new RandomBot("1"), new RandomBot("2"));
         List<String> botNames = bots.stream().map(Bot::getName).collect(toList());
         ModelGameState mgs = gameplay.createMatch(10, 20, bots, 100L, 0.9, 0).getGameState();
